@@ -1,0 +1,60 @@
+@if (open()) {
+  <button class="backdrop" type="button" tabindex="-1" (click)="closed.emit()" aria-label="Cerrar pedido"></button>
+  <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="cart-title" aria-describedby="cart-subtitle">
+    <header class="drawer-header">
+      <div>
+        <span class="drawer-eyebrow">D'MANGA / TU SELECCIÓN</span>
+        <h2 id="cart-title">Mi pedido</h2>
+        <p id="cart-subtitle">Revisa y copia el detalle de tus platos.</p>
+      </div>
+      <button id="close-cart" class="close" type="button" (click)="closed.emit()" aria-label="Cerrar pedido">×</button>
+    </header>
+
+    <div class="drawer-body">
+      @if (!cart.items().length) {
+        <div class="empty-state">
+          <div class="empty-icon" aria-hidden="true">⌁</div>
+          <h3>Empieza por algo rico</h3>
+          <p>Explora la carta y agrega los platos que más te provoquen.</p>
+          <button type="button" (click)="closed.emit()">Explorar la carta <span aria-hidden="true">↗</span></button>
+        </div>
+      } @else {
+        <section class="cart-section" aria-labelledby="summary-title">
+          <div class="section-title"><span>01</span><h3 id="summary-title">Tus platos</h3><small>{{ cart.itemCount() }} {{ cart.itemCount() === 1 ? 'unidad' : 'unidades' }}</small></div>
+          <div class="items">
+            @for (item of cart.items(); track item.product.id) {
+              <article class="cart-item">
+                @if (item.product.image) { <img [src]="item.product.image" [alt]="item.product.imageAlt || item.product.name"> }
+                @else { <span class="cart-item-mark" aria-hidden="true"><img src="/brand/barra-cevichera-d-manga.png" alt=""></span> }
+                <div class="item-main">
+                  <div class="item-title"><h4>{{ item.product.name }}</h4><strong>{{ (item.product.price ?? 0) * item.quantity | currency:'PEN':'symbol-narrow':'1.2-2':'es-PE' }}</strong></div>
+                  <p class="unit-price">{{ item.product.price | currency:'PEN':'symbol-narrow':'1.2-2':'es-PE' }} por unidad</p>
+                  <div class="item-actions">
+                    <div class="quantity" [attr.aria-label]="'Cantidad de ' + item.product.name">
+                      <button type="button" (click)="cart.setQuantity(item.product.id, item.quantity - 1)" [attr.aria-label]="'Quitar una unidad de ' + item.product.name">−</button>
+                      <span aria-live="polite">{{ item.quantity }}</span>
+                      <button type="button" (click)="cart.setQuantity(item.product.id, item.quantity + 1)" [attr.aria-label]="'Agregar una unidad de ' + item.product.name">+</button>
+                    </div>
+                    <button class="remove" type="button" (click)="cart.remove(item.product.id)" [attr.aria-label]="'Eliminar ' + item.product.name + ' del pedido'">Eliminar</button>
+                  </div>
+                  <label [for]="'note-' + item.product.id">Indicaciones para este plato</label>
+                  <input [id]="'note-' + item.product.id" type="text" [ngModel]="item.notes" (ngModelChange)="cart.updateNotes(item.product.id, $event)" placeholder="Ej. sin picante" maxlength="100">
+                </div>
+              </article>
+            }
+          </div>
+        </section>
+
+      }
+    </div>
+
+    @if (cart.items().length) {
+      <footer class="drawer-footer">
+        <div class="total-row"><span>Total de productos</span><strong>{{ cart.total() | currency:'PEN':'symbol-narrow':'1.2-2':'es-PE' }}</strong></div>
+        @if (errorMessage()) { <p class="form-error" role="alert">{{ errorMessage() }}</p> }
+        <button class="copy-order" type="button" (click)="copyOrder()">{{ copied() ? 'Pedido copiado' : 'Copiar pedido' }} <span aria-hidden="true">{{ copied() ? '✓' : '↗' }}</span></button>
+        <p class="send-note">El pedido se copia al portapapeles; podrás compartirlo por el canal que prefieras.</p>
+      </footer>
+    }
+  </aside>
+}

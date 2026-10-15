@@ -1,0 +1,41 @@
+<article class="product-card" [class.featured]="product().featured" [class.text-only]="!product().image" [class.unpriced]="product().price === null">
+  @if (product().image) {
+    <div class="product-image-wrap">
+      <img class="product-image" [src]="product().image" [alt]="product().imageAlt || product().name" loading="lazy">
+      @if (product().badge) { <span class="badge">{{ product().badge }}</span> }
+      <span class="reference">Imagen referencial</span>
+    </div>
+  }
+  <div class="product-copy">
+    <div class="product-topline">
+      <span>{{ product().categoryId === 'bebidas' ? 'Para acompañar' : "D'manga" }}</span>
+      @if (quantity() > 0) { <span class="in-cart">En tu pedido</span> }
+    </div>
+    <h3>{{ product().name }}</h3>
+    @if (product().description) { <p>{{ product().description }}</p> }
+    @if (product().priceOptions?.length) {
+      <div class="price-options" [attr.aria-label]="'Precios de ' + product().name">
+        @for (price of product().priceOptions; track $index) {
+          <button type="button" [class.selected]="selectedIndex() === $index" [attr.aria-pressed]="selectedIndex() === $index" (click)="selectedIndex.set($index)">S/ {{ price }}</button>
+        }
+      </div>
+    }
+    <div class="product-footer">
+      @if (selectedProduct().price !== null) { <strong class="price">{{ selectedProduct().price | currency:'PEN':'symbol-narrow':'1.0-2':'es-PE' }}</strong> }
+      @else { <span class="price-on-request">Precio por consultar</span> }
+      @if (selectedProduct().price === null) {
+        <span class="price-on-request">Consulta en el local</span>
+      } @else if (quantity() > 0) {
+        <div class="stepper" [attr.aria-label]="'Cantidad de ' + product().name">
+          <button type="button" (click)="decrease()" [attr.aria-label]="'Quitar una unidad de ' + selectedProduct().name">−</button>
+          <span aria-live="polite">{{ quantity() }}</span>
+          <button type="button" (click)="add()" [attr.aria-label]="'Agregar una unidad de ' + selectedProduct().name">+</button>
+        </div>
+      } @else {
+        <button type="button" class="add-button" [class.added]="justAdded()" (click)="add()" [attr.aria-label]="'Agregar ' + selectedProduct().name + ' al pedido'">
+          <span>Agregar</span><span aria-hidden="true">+</span>
+        </button>
+      }
+    </div>
+  </div>
+</article>
